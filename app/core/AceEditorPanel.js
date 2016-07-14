@@ -68,19 +68,18 @@ Ext.define('SM.core.AceEditorPanel', {
                         text: 'Settings',
                         iconCls: 'fa fa-cog',
                         menu: [{
-                            toggleGroup: 'theme',
+                            xtype: 'menucheckitem',
+                            group: 'codetheme',
                             text: 'chrome',
-                            checked: true,
-                            handler: function(btn) {
-                                SM.core.Toast('pressed: ' + btn.text);
-                            }
+                            // checked: true,
+                            checkHandler: Ext.Function.bind(me.onChangeTheme, me)
                         },
                         {
-                            toggleGroup: 'theme',
+                            xtype: 'menucheckitem',
+                            group: 'codetheme',
                             text: 'twilight',
-                            handler: function(btn) {
-                                SM.core.Toast('pressed: ' + btn.text);
-                            }
+                            // checked: false,
+                            checkHandler: Ext.Function.bind(me.onChangeTheme, me)
                         }]
                     }
                 ]
@@ -237,6 +236,10 @@ Ext.define('SM.core.AceEditorPanel', {
 
     doClose: function() {
         this.up('window').close();
+    },
+
+    onChangeTheme: function(btn) {
+        this.editor.setTheme('ace/theme/' + btn.text);
     },
 
     destroy: function() {

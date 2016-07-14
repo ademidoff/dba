@@ -20,7 +20,11 @@ Ext.define('SM.core.Messaging', {
     getMessage: function(messageId) {
         var messages = this.classMessages;
         if (!messages) {
-            SM.core.Toast('Messages not configured for this class');
+            SM.core.Toast([
+                'Messages not configured for the class \'',
+                this.getClassName(),
+                '\''
+            ].join(''));
             return null;
         }
         return messages[messageId] || 'No such message for id: ' + messageId;
