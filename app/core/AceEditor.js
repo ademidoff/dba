@@ -3,6 +3,8 @@ Ext.define('SM.core.AceEditor', {
 
     alias: 'widget.codeeditor',
 
+    mixins: ['SM.core.Messaging'],
+
     classMessages: {
         codeEditorNotLoaded: 'Code editor could not be loaded'
     },
@@ -31,8 +33,7 @@ Ext.define('SM.core.AceEditor', {
                     me.getTrigger('codeEditor').show();
                 },
                 onError: function() {
-                    var message = me.classMessages.codeEditorNotLoaded;
-                    SM.core.Toast(message);
+                    SM.core.Toast(me.getMessage('codeEditorNotLoaded'));
                 }
             });
         }
@@ -46,8 +47,8 @@ Ext.define('SM.core.AceEditor', {
             me.win = Ext.create('SM.core.AceEditorWindow');
             me.win.copyContentToField = function(content) {
                 me.setValue(content);
-                // scrollTo(x, y, animate = true)
-                me.scrollTo(0, 0, false);
+                // ::scrollTo(x, y, animate = true)
+                me.scrollBy(0, -80, false);
             };
             me.win.getRecordId = function() {
                 return me.up('form').getRecordId();

@@ -9,6 +9,12 @@ Ext.define('SM.core.AceEditorPanel', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.aceeditorpanel',
 
+    mixins: ['SM.core.Messaging'],
+
+    classMessages: {
+        contentFetchingError: 'Error fetching code editor content'
+    },
+
     layout: 'fit',
     autofocus: true,
     border: false,
@@ -27,39 +33,60 @@ Ext.define('SM.core.AceEditorPanel', {
                 ui: 'footer',
                 items: [
                     {
-                        xtype: 'button', 
-                        text: 'Close', 
-                        iconCls: 'fa fa-arrow-circle-left', 
-                        handler: Ext.bind(me.doClose, me) 
+                        xtype: 'button',
+                        text: 'Close',
+                        iconCls: 'fa fa-arrow-circle-left',
+                        handler: Ext.bind(me.doClose, me)
                     },
-                    { 
-                        xtype: 'button', 
+                    {
+                        xtype: 'button',
                         text: 'Save',
                         itemId: 'saveBtn',
                         iconCls: 'fa fa-floppy-o',
-                        disabled: true, 
-                        handler: Ext.bind(me.onSave, me) 
+                        disabled: true,
+                        handler: Ext.bind(me.onSave, me)
                     },
-                    { 
-                        xtype: 'button', 
-                        text: 'Undo', 
+                    {
+                        xtype: 'button',
+                        text: 'Undo',
                         itemId: 'undoBtn',
                         iconCls: 'fa fa-undo',
-                        disabled: true, 
-                        handler: Ext.bind(me.onUndo, me) 
+                        disabled: true,
+                        handler: Ext.bind(me.onUndo, me)
                     },
-                    { 
-                        xtype: 'button', 
-                        text: 'Redo', 
+                    {
+                        xtype: 'button',
+                        text: 'Redo',
                         itemId: 'redoBtn',
                         iconCls: 'fa fa-repeat',
-                        disabled: true, 
-                        handler: Ext.bind(me.onRedo, me) 
+                        disabled: true,
+                        handler: Ext.bind(me.onRedo, me)
+                    },
+                    '->',
+                    {
+                        xtype: 'splitbutton',
+                        text: 'Settings',
+                        iconCls: 'fa fa-cog',
+                        menu: [{
+                            toggleGroup: 'theme',
+                            text: 'chrome',
+                            checked: true,
+                            handler: function(btn) {
+                                SM.core.Toast('pressed: ' + btn.text);
+                            }
+                        },
+                        {
+                            toggleGroup: 'theme',
+                            text: 'twilight',
+                            handler: function(btn) {
+                                SM.core.Toast('pressed: ' + btn.text);
+                            }
+                        }]
                     }
                 ]
             }
         });
-        
+
         me.callParent(arguments);
     },
 
@@ -79,12 +106,12 @@ Ext.define('SM.core.AceEditorPanel', {
             toolbar.getComponent('redoBtn').setDisabled(!hasRedo);
         }
     },
-    
+
     onRender: function() {
         var me = this;
         // save the auto-generated id
         me.editorId = me.items.getAt(0).getId();
-        
+
         me.callParent(arguments);
 
         // init editor on afterlayout
@@ -103,14 +130,14 @@ Ext.define('SM.core.AceEditorPanel', {
                 action: 'find',
                 entity: 'EntityEventHook',
                 query: recordId
-            }  
+            }
         });
     },
 
     initEditor: function() {
         var me = this,
             POS_BEGINNING = -1,
-            POS_END = 0,
+            // POS_END = 0,
             editor;
 
         Ext.applyIf(me, {
@@ -160,8 +187,8 @@ Ext.define('SM.core.AceEditorPanel', {
         });
 
         me.onChangeThrottled = Ext.Function.createThrottled(function() {
-                me.fireEvent('change', me.editor);
-            }, 500);
+            me.fireEvent('change', me.editor);
+        }, 500);
 
         if (me.autofocus) {
             me.editor.focus();
@@ -173,20 +200,22 @@ Ext.define('SM.core.AceEditorPanel', {
 
         me.fireEvent('editorcreated', me);
 
+        function resetUndo(me, editor) {
+            editor.session.setUndoManager(new ace.UndoManager());
+            editor.on('input', me.onChangeThrottled);
+        }
+
         me.fetchContent()
         .then(function(data) {
             var script = data.data && data.data.Script;
             if (script) {
                 editor.session.setValue(script, POS_BEGINNING);
             }
-            editor.session.setUndoManager(new ace.UndoManager());
-            editor.on('input', me.onChangeThrottled);
-            // editor.session.on('change', me.onChangeThrottled);
+            resetUndo(me, editor);
         })
         .catch(function(error) {
-            editor.session.setUndoManager(new ace.UndoManager());
-            editor.on('input', me.onChangeThrottled);
-            SM.core.Toast(error || 'Error fetching code editor content');
+            resetUndo(me, editor);
+            SM.core.Toast(error || me.getMessage('contentFetchingError'));
         });
     },
 

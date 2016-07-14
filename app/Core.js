@@ -1,4 +1,4 @@
-Ext.ns('SM.core'); 
+Ext.ns('SM.core');
 Ext.define('SM.core', {});
 
 Ext.define('SM.Request', {
@@ -16,19 +16,19 @@ Ext.define('SM.Request', {
 
     constructor: function(config) {
 
-    	var me = this;
+        var me = this;
 
-    	if (config) {
-    		Ext.apply(me, config);
-    	}
+        if (config) {
+            Ext.apply(me, config);
+        }
 
         return new Promise(function(resolve, reject) {
 
-	    	if (me.params === undefined) {
-	    		return Promise.reject('Params not defined');
-	    	}
+            if (me.params === undefined) {
+                return Promise.reject('Params not defined');
+            }
 
-    		me.maskEl.mask('Loading...');
+            me.maskEl.mask('Loading...');
 
             Ext.Ajax.request({
                 url: 'api/v1',
@@ -36,32 +36,32 @@ Ext.define('SM.Request', {
                 jsonData: me.params,
 
                 success: function(response) {
-			        var result;
-			        me.maskEl.unmask();
-			        try {
-			        	result = Ext.decode(response.responseText);
+                    var result;
+                    me.maskEl.unmask();
+                    try {
+                        result = Ext.decode(response.responseText);
                         // normalize the result
-			            if (!result.data) {
-			            	Object.assign(result, { data: [] });
-			            }
-		                resolve(result);
-			        } catch(e) {
-			            reject(e);
-			        }
-			    },
+                        if (!result.data) {
+                            Object.assign(result, { data: [] });
+                        }
+                        resolve(result);
+                    } catch(e) {
+                        reject(e);
+                    }
+                },
 
                 failure: function(response) {
-                	var err = 'Unknown server error';
-			        console.log('failure: ', response);
-			        // action.failureType == 'server'
-			        me.maskEl.unmask();
-			        try {
-			        	response = Ext.decode(response.responseText);
-			        	reject(response.msg || err);
-			        } catch (e) {
-			        	reject(err);
-			        }
-			    }
+                    var err = 'Unknown server error';
+                    console.log('failure: ', response);
+                    // action.failureType == 'server'
+                    me.maskEl.unmask();
+                    try {
+                        response = Ext.decode(response.responseText);
+                        reject(response.msg || err);
+                    } catch (e) {
+                        reject(err);
+                    }
+                }
             });
         });
     }
@@ -79,7 +79,7 @@ SM.core.createStore = function (params) {
             delete params.model;
         }
         if (proxy = params.proxy) {
-        	delete params.proxy;
+            delete params.proxy;
         }
     }
 
@@ -95,16 +95,16 @@ SM.core.createTreeStore = function (params) {
 };
 
 /**
- * fetchForm makes an 
+ * fetchForm makes an
  *
  */
 SM.core.fetchForm = function(formName) {
     function makeFields(fields) {
         return fields.map(function(fld) {
             var item = {
-            	formElementId: fld.Id,
-                name: fld.Name, 
-                fieldLabel: fld.Label, 
+                formElementId: fld.Id,
+                name: fld.Name,
+                fieldLabel: fld.Label,
                 hidden: fld.IsHidden,
                 xtype: fld.Type || 'textfield'
             };
@@ -121,11 +121,11 @@ SM.core.fetchForm = function(formName) {
     return SM.Request.create({
         params: {
             lookup: {
-        		entity: 'FormElement',
-        		order: ['Order'],
+                entity: 'FormElement',
+                order: ['Order'],
                 refkey: 'FormId',
-    			refqry: { Name: formName }
-        	}
+                refqry: { Name: formName }
+            }
         }
     })
     .then(function(result) {
@@ -138,10 +138,10 @@ SM.core.createForm = function(container, entityName, items, recId) {
 
         try {
             var form = Ext.create({
-                    xtype: 'base.form',
-                    title: entityName,
-                    items: items
-                });
+                xtype: 'base.form',
+                title: entityName,
+                items: items
+            });
             form.setEntityName(entityName);
 
             container.add(form);
@@ -158,7 +158,7 @@ SM.core.createForm = function(container, entityName, items, recId) {
                         action: 'find',
                         entity: entityName,
                         query: recId
-                    }                
+                    }
                 })
                 .then(function(data) {
                     if (data && data.data) {
@@ -205,11 +205,11 @@ SM.core.getView = function (entityName) {
 
     var attributeStore = SM.core.createStore({
         lookup: {
-    		entity: 'EntityAttribute',
-    		order: ['Order'],
+            entity: 'EntityAttribute',
+            order: ['Order'],
             refkey: 'EntityId',
-			refqry: { Name: entityName }
-    	},
+            refqry: { Name: entityName }
+        },
         model: attributeModel
     });
 
@@ -329,11 +329,11 @@ SM.core.renderGrid = function(entity) {
                                     contentPanel.setActiveTab(this.parentTab);
                                     // should update the grid
                                 }
-                            }, form);                            
+                            }, form);
                         });
                     })
                     .catch(function(error) {
-                        var msg = error instanceof Error ? error.message : 
+                        var msg = error instanceof Error ? error.message :
                                 error ? error : 'Form ' + entityName + ' not found';
                         SM.core.Toast(msg);
                     });
@@ -354,7 +354,7 @@ SM.core.renderGrid = function(entity) {
         store: dataStore,
         displayInfo: true,
         displayMsg: 'Records {0} - {1} of {2}',
-        emptyMsg: "No records"
+        emptyMsg: 'No records'
     });
 
     var grid = Ext.create('SM.view.base.BaseGrid', {
@@ -386,7 +386,7 @@ SM.core.renderGrid = function(entity) {
                     });
                 })
                 .catch(function(error) {
-                    var msg = error instanceof Error ? error.message : 
+                    var msg = error instanceof Error ? error.message :
                             error ? error : 'Form ' + entityName + ' not found';
                     SM.core.Toast(msg);
                 });
@@ -400,7 +400,7 @@ SM.core.renderGrid = function(entity) {
             contentPanel.add(grid);
             contentPanel.setActiveTab(grid);
         } else {
-        	grid.destroy();
+            grid.destroy();
             Ext.Msg.alert('Information', 'Entity ' + entityName + ' not found');
         }
     });
@@ -419,7 +419,7 @@ SM.core.Toast = function(msg) {
 };
 
 SM.core.Alert = function(msg) {
-	console.warn('This should warn to console: ', msg);
+    console.warn('This should warn to console: ', msg);
 };
 
 SM.core.alertError = function(error) {

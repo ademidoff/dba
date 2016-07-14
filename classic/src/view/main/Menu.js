@@ -18,6 +18,7 @@ Ext.define('SM.view.main.Menu', {
         'SM.view.form.DoubleComboBox',
         'SM.view.base.BaseGrid',
         'SM.view.base.BaseForm',
+        'SM.core.Messaging',
         'SM.core.AceEditorPanel',
         'SM.core.AceEditorWindow',
         'SM.core.AceEditor'
@@ -50,8 +51,8 @@ Ext.define('SM.view.main.Menu', {
                     cls: 'app-logo',
                     html: [
                         '<div class="main-logo">',
-                            '<img src="resources/images/company-logo.png">',
-                            'Service Desk',
+                        '<img src="resources/images/company-logo.png">',
+                        'Service Desk',
                         '</div>'
                     ].join(''),
                     width: 250

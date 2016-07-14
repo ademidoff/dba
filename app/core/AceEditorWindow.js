@@ -1,6 +1,11 @@
 Ext.define('SM.core.AceEditorWindow', {
     extend: 'Ext.window.Window',
 
+    mixins: ['SM.core.Messaging'],
+    classMessages: {
+        unsavedContentWarning: 'There are unsaved changes in the editor.\nAre you sure you still want to exit?'
+    },
+
     xtype: 'aceeditorwindow',
     title: 'Code Editor',
     layout: 'fit',
@@ -9,7 +14,7 @@ Ext.define('SM.core.AceEditorWindow', {
     width: 700,
     height: 400,
     closeAction: 'destroy',
-    
+
     items: [{
         xtype: 'aceeditorpanel'
         // listeners: {
@@ -21,19 +26,17 @@ Ext.define('SM.core.AceEditorWindow', {
 
     listeners: {
         beforeclose: function(win) {
-            var panel = win.down('aceeditorpanel');
-            var editor = panel.editor;
-            // var undoManager = editor.getSession().getUndoManager();
+            var editor = win.down('aceeditorpanel').editor;
             var undoManager = editor.session.getUndoManager();
             // check if there is unsaved content
             if (!undoManager.hasUndo()) {
                 return true;
-            } 
+            }
             else {
                 Ext.Msg.confirm(
-                    'Close', 
-                    'There are unsaved changes in the editor.\nAre you sure you still want to exit?',
-                    win.onExitConfirmed, 
+                    'Close',
+                    win.getMessage('unsavedContentWarning'),
+                    win.onExitConfirmed,
                     win
                 );
                 return false;
