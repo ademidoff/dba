@@ -1,0 +1,50 @@
+/**
+ * A wrap for the main viewport. Handles the menu resizing and the `left slide`
+ */
+Ext.define('SM.view.main.MainContainerWrap', {
+    extend: 'Ext.container.Container',
+    xtype: 'maincontainerwrap',
+
+    requires : [
+        // 'Ext.layout.container.HBox'
+        'Ext.layout.container.Border'
+    ],
+
+    // scrollable: 'y',
+
+    layout: {
+        type: 'border',
+        align: 'stretchmax',
+
+        // Tell the layout to animate the x/width of the child items.
+        animate: true,
+        animatePolicy: {
+            x: true,
+            width: true
+        }
+    },
+
+    beforeLayout : function() {
+        // We setup some minHeights dynamically to ensure we stretch to fill the height
+        // of the viewport minus the top toolbar
+
+        var me = this,
+            // offset by topmost toolbar height
+            height = Ext.Element.getViewportHeight() - 64,
+            // We use itemId/getComponent instead of "reference" because the initial
+            // layout occurs too early for the reference to be resolved
+            navTreeCont = me.getComponent('navigationTreeContainer'),
+            navTree = navTreeCont.getComponent('navigationTreeList');
+
+        me.minHeight = height;
+
+        [navTreeCont, navTree].forEach(function(cmp) {
+            cmp.setStyle({
+                'min-height': height + 'px'
+            });
+        });
+
+        me.callParent(arguments);
+    }
+});
+
