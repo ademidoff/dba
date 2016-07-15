@@ -1,13 +1,13 @@
-Ext.define('SM.core.Messaging', {
+Ext.define('SM.core.Localizable', {
     extend: 'Ext.Mixin',
     mixinConfig: {
-        id: 'messaging'
+        id: 'localizable'
     },
     /**
-     * @cfg {Object} classMessages
-     * Provide this config object wherever you want to have i10n messages
-     * along with `mixins: ['SM.core.Messaging']`
-     * NOTE: the messages should be localized/overriden in the language files
+     * @cfg {Object} localizable
+     * Provide this config object wherever you want to have localized messages
+     * along with `mixins: ['SM.core.Localizable']`
+     * NOTE: the messages should be localized (i.e. overriden) in the language files
      * By default the english message will be used
      */
     constructor: function(config) {
@@ -17,11 +17,11 @@ Ext.define('SM.core.Messaging', {
         }
     },
 
-    getMessage: function(messageId) {
-        var messages = this.classMessages;
+    localize: function(messageId) {
+        var messages = this.localizable;
         if (!messages) {
             SM.core.Toast([
-                'Messages not configured for the class \'',
+                'Localization not configured for the class \'',
                 this.getClassName(),
                 '\''
             ].join(''));

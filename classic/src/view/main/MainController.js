@@ -1,11 +1,15 @@
 /**
- * The controller for rendering components in the main area (tab panel) 
+ * The controller for rendering components in the main area (tab panel)
  * upon clicking on the nav menu
  */
 Ext.define('SM.view.main.MainController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.main',
-
+    mixins: ['SM.core.Localizable'],
+    localizable: {
+        switchToModern: 'Switch to Modern',
+        confirmSwitchToModern: 'Are you sure you want to switch toolkits?'
+    },
     lastView: null,
 
     init: function () {
@@ -32,12 +36,12 @@ Ext.define('SM.view.main.MainController', {
     },
 
     setCurrentView: function (node) {
-        var me = this,
-            refs = me.getReferences(),
-            contentPanel = refs.contentPanel;
+        // var me = this;
+        // var refs = me.getReferences();
+        // var contentPanel = refs.contentPanel;
         var entityName = Ext.String.capitalize(node.data.component);
         if (!entityName) {
-            return SM.core.Toast('Warning', 'No action defined');
+            return SM.core.Toast('No action defined');
         }
 
         SM.core.getView(entityName)
@@ -118,7 +122,7 @@ Ext.define('SM.view.main.MainController', {
     // @disabled
     onMainViewRender: function () {
         if (!window.location.hash) {
-            this.redirectTo("login");
+            this.redirectTo('login');
         }
     },
 
@@ -132,8 +136,11 @@ Ext.define('SM.view.main.MainController', {
     },
 
     onSwitchToModern: function () {
-        Ext.Msg.confirm('Switch to Modern', 'Are you sure you want to switch toolkits?',
-            this.onSwitchToModernConfirmed, this);
+        Ext.Msg.confirm(
+            this.localize('switchToModern'),
+            this.localize('confirmSwitchToModern'),
+            this.onSwitchToModernConfirmed,
+            this);
     },
 
     onSwitchToModernConfirmed: function (choice) {
@@ -152,5 +159,13 @@ Ext.define('SM.view.main.MainController', {
 
     onEmailRouteChange: function () {
         this.setCurrentView('email');
+    },
+
+    onTabChange: function(tabPanel, newCard) {
+        var store = newCard.getStore && newCard.getStore();
+        if (newCard.shouldRefresh && store) {
+            store.reload({ params: store.lastOptions.params });
+            newCard.shouldRefresh = false;
+        }
     }
 });

@@ -1,8 +1,8 @@
 Ext.define('SM.core.AceEditorWindow', {
     extend: 'Ext.window.Window',
 
-    mixins: ['SM.core.Messaging'],
-    classMessages: {
+    mixins: ['SM.core.Localizable'],
+    localizable: {
         unsavedContentWarning: 'There are unsaved changes in the editor.\nAre you sure you still want to exit?'
     },
 
@@ -35,7 +35,7 @@ Ext.define('SM.core.AceEditorWindow', {
             else {
                 Ext.Msg.confirm(
                     'Close',
-                    win.getMessage('unsavedContentWarning'),
+                    win.localize('unsavedContentWarning'),
                     win.onExitConfirmed,
                     win
                 );

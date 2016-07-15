@@ -3,9 +3,8 @@ Ext.define('SM.core.AceEditor', {
 
     alias: 'widget.codeeditor',
 
-    mixins: ['SM.core.Messaging'],
-
-    classMessages: {
+    mixins: ['SM.core.Localizable'],
+    localizable: {
         codeEditorNotLoaded: 'Code editor could not be loaded'
     },
 
@@ -33,7 +32,7 @@ Ext.define('SM.core.AceEditor', {
                     me.getTrigger('codeEditor').show();
                 },
                 onError: function() {
-                    SM.core.Toast(me.getMessage('codeEditorNotLoaded'));
+                    SM.core.Toast(me.localize('codeEditorNotLoaded'));
                 }
             });
         }

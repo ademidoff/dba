@@ -1,5 +1,5 @@
 Ext.define('SM.view.base.BaseGrid', {
-	extend: 'Ext.grid.Panel',
+    extend: 'Ext.grid.Panel',
 
-	multiColumnSort: true
+    multiColumnSort: true
 });

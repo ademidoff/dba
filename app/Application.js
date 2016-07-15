@@ -23,10 +23,10 @@ Ext.define('SM.Application', {
         } else {
             stateProvider = new Ext.state.CookieProvider();
         }
-        Ext.state.Manager.setProvider(stateProvider); 
+        Ext.state.Manager.setProvider(stateProvider);
     },
 
-    launch: function (profile) {
+    launch: function (_profile) {
 
         // Could use any type of storage, i.e., Cookies, LocalStorage, etc.
         var loggedIn = Ext.state.Manager.get('SMLoggedIn');

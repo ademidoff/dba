@@ -18,7 +18,7 @@ Ext.define('SM.view.main.Menu', {
         'SM.view.form.DoubleComboBox',
         'SM.view.base.BaseGrid',
         'SM.view.base.BaseForm',
-        'SM.core.Messaging',
+        'SM.core.Localizable',
         'SM.core.AceEditorPanel',
         'SM.core.AceEditorWindow',
         'SM.core.AceEditor'
@@ -163,7 +163,10 @@ Ext.define('SM.view.main.Menu', {
                     reference: 'contentPanel',
                     cls: 'sm-content-panel',
                     id: 'sm-content-panel',
-                    minTabWidth: 100
+                    minTabWidth: 100,
+                    listeners: {
+                        tabchange: 'onTabChange'
+                    }
                 }
             ]
         }

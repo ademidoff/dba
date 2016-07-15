@@ -3,7 +3,12 @@ Ext.define('SM.core', {});
 
 Ext.define('SM.Request', {
 
-	/**
+    mixins: ['SM.core.Localizable'],
+    localizable: {
+        paramsNotDefined: 'Request params not defined',
+        unknownServerError: 'Unknown server error'
+    },
+    /**
 	 * @cfg {Ext.Element} maskEl
 	 * The mask will be applied on this element during ajax requests
 	 */
@@ -25,7 +30,7 @@ Ext.define('SM.Request', {
         return new Promise(function(resolve, reject) {
 
             if (me.params === undefined) {
-                return Promise.reject('Params not defined');
+                return Promise.reject(me.localize('paramsNotDefined'));
             }
 
             me.maskEl.mask('Loading...');
@@ -51,8 +56,7 @@ Ext.define('SM.Request', {
                 },
 
                 failure: function(response) {
-                    var err = 'Unknown server error';
-                    console.log('failure: ', response);
+                    var err = me.localize('unknownServerError');
                     // action.failureType == 'server'
                     me.maskEl.unmask();
                     try {
@@ -95,8 +99,9 @@ SM.core.createTreeStore = function (params) {
 };
 
 /**
- * fetchForm makes an
- *
+ * fetchForm makes an ajax request to fetch a form config
+ * @param {String} formName
+ * @return {Array} items Returns an array of fields
  */
 SM.core.fetchForm = function(formName) {
     function makeFields(fields) {
@@ -117,7 +122,7 @@ SM.core.fetchForm = function(formName) {
         });
     }
 
-    // return a Promise
+    // returns a Promise
     return SM.Request.create({
         params: {
             lookup: {
@@ -172,7 +177,7 @@ SM.core.createForm = function(container, entityName, items, recId) {
                     SM.core.Toast(error || 'Form data loading error');
                 });
             }
-
+            form.loadFieldStores();
             resolve(form);
 
         } catch(error) {
@@ -306,7 +311,7 @@ SM.core.renderGrid = function(entity) {
                 text: 'Search',
                 iconCls: 'fa fa-search',
                 handler: function() {
-
+                    SM.core.Toast('search button pressed');
                 }
             },
             {
@@ -321,16 +326,7 @@ SM.core.renderGrid = function(entity) {
                         }
                         SM.core
                         .createForm(contentPanel, entityName, items, null)
-                        .then(function(form) {
-                            form.loadFieldStores();
-                            form.on('close', function() {
-                                if (this.parentTab) {
-                                    this.parentTab.tab.show();
-                                    contentPanel.setActiveTab(this.parentTab);
-                                    // should update the grid
-                                }
-                            }, form);
-                        });
+                        .then(attachFormListeners(contentPanel));
                     })
                     .catch(function(error) {
                         var msg = error instanceof Error ? error.message :
@@ -365,7 +361,7 @@ SM.core.renderGrid = function(entity) {
         bbar: paging,
         listeners: {
             itemdblclick: function(view, rec) {
-                // open a form to edit a record
+                // open a form to edit the record
                 SM.core
                 .fetchForm(entityName)
                 .then(function(items) {
@@ -374,16 +370,7 @@ SM.core.renderGrid = function(entity) {
                     }
                     SM.core
                     .createForm(contentPanel, entityName, items, rec.get('Id'))
-                    .then(function(form) {
-                        form.loadFieldStores();
-                        form.on('close', function() {
-                            if (this.parentTab) {
-                                this.parentTab.tab.show();
-                                contentPanel.setActiveTab(this.parentTab);
-                                // should update the grid
-                            }
-                        }, form);
-                    });
+                    .then(attachFormListeners(contentPanel));
                 })
                 .catch(function(error) {
                     var msg = error instanceof Error ? error.message :
@@ -405,6 +392,27 @@ SM.core.renderGrid = function(entity) {
         }
     });
 
+    function attachFormListeners(contentPanel) {
+        return function(form) {
+            form.on({
+                close: function() {
+                    if (this.parentTab) {
+                        this.parentTab.tab.show();
+                        contentPanel.setActiveTab(this.parentTab);
+                    }
+                },
+                aftersave: function() {
+                    console.log('aftersave in core');
+                    this.parentTab.shouldRefresh = true;
+                },
+                afterdelete: function() {
+                    console.log('afterdelete in core');
+                    this.parentTab.shouldRefresh = true;
+                },
+                scope: form
+            });
+        };
+    }
 };
 
 SM.core.Toast = function(msg) {

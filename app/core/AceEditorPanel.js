@@ -9,9 +9,9 @@ Ext.define('SM.core.AceEditorPanel', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.aceeditorpanel',
 
-    mixins: ['SM.core.Messaging'],
+    mixins: ['SM.core.Localizable'],
 
-    classMessages: {
+    localizable: {
         contentFetchingError: 'Error fetching code editor content'
     },
 
@@ -71,14 +71,14 @@ Ext.define('SM.core.AceEditorPanel', {
                             xtype: 'menucheckitem',
                             group: 'codetheme',
                             text: 'chrome',
-                            // checked: true,
+                            checked: me.getThemeName() == 'chrome',
                             checkHandler: Ext.Function.bind(me.onChangeTheme, me)
                         },
                         {
                             xtype: 'menucheckitem',
                             group: 'codetheme',
                             text: 'twilight',
-                            // checked: false,
+                            checked: me.getThemeName() == 'twilight',
                             checkHandler: Ext.Function.bind(me.onChangeTheme, me)
                         }]
                     }
@@ -143,7 +143,8 @@ Ext.define('SM.core.AceEditorPanel', {
             path: '',
             autofocus: true,
             fontSize: '14px',
-            theme: 'chrome',
+            themePath: 'ace/theme/',
+            theme: me.getState() || this.themePath + 'chrome',
             parser: 'javascript',
             printMargin: true,
             printMarginColumn: 80,
@@ -176,7 +177,7 @@ Ext.define('SM.core.AceEditorPanel', {
             highlightGutterLine: me.highlightGutterLine,
             showInvisibles: me.showInvisible,
             showFoldWidgets: me.codeFolding,
-            theme: 'ace/theme/' + me.theme
+            theme: me.theme
         });
         editor.session.setOptions({
             wrap: me.useWrapMode,
@@ -214,7 +215,7 @@ Ext.define('SM.core.AceEditorPanel', {
         })
         .catch(function(error) {
             resetUndo(me, editor);
-            SM.core.Toast(error || me.getMessage('contentFetchingError'));
+            SM.core.Toast(error || me.localize('contentFetchingError'));
         });
     },
 
@@ -239,7 +240,22 @@ Ext.define('SM.core.AceEditorPanel', {
     },
 
     onChangeTheme: function(btn) {
-        this.editor.setTheme('ace/theme/' + btn.text);
+        this.editor.setTheme(this.themePath + btn.text);
+        this.saveState();
+    },
+
+    saveState: function() {
+        var theme = this.editor.getTheme();
+        Ext.state.Manager.set('code-editor-theme', theme);
+    },
+
+    getState: function() {
+        return Ext.state.Manager.get('code-editor-theme') || '';
+    },
+
+    getThemeName: function() {
+        var theme = this.getState().match(/(?:\S*\/)?(\S*?)$/);
+        return theme ? theme[1] : 'chrome';
     },
 
     destroy: function() {
