@@ -11,6 +11,7 @@ Ext.define('SM.view.base.BaseForm', {
             'There are unsaved changes in this form.',
             ' Are you sure you want to close it?'
         ].join(''),
+        cantSaveRecord: 'Record cannot be saved',
         cantDeleteRecord: 'This record cannot be deleted',
         beforeDeleteConfirm: 'Are you sure you want to delete this record?'
     },
@@ -78,7 +79,7 @@ Ext.define('SM.view.base.BaseForm', {
                     handler: function() {
                         var form = this.up('form');
                         if (form.fireEvent('beforesave', form) === false) {
-                            SM.core.Toast('Record cannot be saved');
+                            SM.core.Toast(form.localize('cantSaveRecord'));
                             return;
                         }
                         form.onSave(form)
