@@ -11,7 +11,9 @@ Ext.define('SM.view.base.BaseForm', {
             'There are unsaved changes in this form.',
             ' Are you sure you want to close it?'
         ].join(''),
+        recordSaved: 'Record saved',
         cantSaveRecord: 'Record cannot be saved',
+        recordDeleted: 'Record successfully deleted',
         cantDeleteRecord: 'This record cannot be deleted',
         beforeDeleteConfirm: 'Are you sure you want to delete this record?'
     },
@@ -57,12 +59,12 @@ Ext.define('SM.view.base.BaseForm', {
                     handler: function() {
                         var form = this.up('form');
                         if (form.fireEvent('beforesave', form) === false) {
-                            SM.core.Toast('Form cannot be saved');
+                            SM.core.Toast(form.localize('cantSaveRecord'));
                             return;
                         }
                         form.onSave(form)
                         .then(function(response) {
-                            SM.core.Toast(response.msg || 'Record saved');
+                            SM.core.Toast(response.msg || form.localize('recordSaved'));
                             form.resetDirty();
                             form.close();
                         })
@@ -84,7 +86,7 @@ Ext.define('SM.view.base.BaseForm', {
                         }
                         form.onSave(form)
                         .then(function(response) {
-                            SM.core.Toast(response.msg || 'Record saved');
+                            SM.core.Toast(response.msg || form.localize('recordSaved'));
                             form.resetDirty();
                             form.fireEvent('aftersave', form, response);
                         })
@@ -108,7 +110,7 @@ Ext.define('SM.view.base.BaseForm', {
                         form.onDelete(form)
                         .then(function(response) {
                             form.fireEvent('afterdelete', form, response);
-                            SM.core.Toast(response.msg || 'Record successfully deleted');
+                            SM.core.Toast(response.msg || form.localize('recordDeleted'));
                             form.forceClose();
 
                         })
@@ -138,14 +140,6 @@ Ext.define('SM.view.base.BaseForm', {
                 });
                 return false;
             }
-        },
-        beforesave: function() {
-        },
-        aftersave: function() {
-        },
-        beforedelete: function() {
-        },
-        afterdelete: function() {
         }
     },
     /**
