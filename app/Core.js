@@ -394,6 +394,9 @@ SM.core.renderGrid = function(entity) {
 
     function attachFormListeners(contentPanel) {
         return function(form) {
+            function shouldRefresh() {
+                contentPanel.shouldRefreshId = Ext.clone(this.parentTab.id);
+            }
             form.on({
                 close: function() {
                     if (this.parentTab) {
@@ -401,13 +404,25 @@ SM.core.renderGrid = function(entity) {
                         contentPanel.setActiveTab(this.parentTab);
                     }
                 },
-                aftersave: function() {
-                    console.log('aftersave in core');
-                    this.parentTab.shouldRefresh = true;
-                },
-                afterdelete: function() {
-                    console.log('afterdelete in core');
-                    this.parentTab.shouldRefresh = true;
+                // beforesave: function() {
+                //
+                // },
+                aftersave: shouldRefresh,
+                // beforedelete: function() {
+                //
+                // },
+                afterdelete: shouldRefresh,
+                dirtychange: function(form, dirty) {
+                    var tbar = this.down('toolbar');
+                    var deleteBtn = tbar.getComponent('deleteBtn');
+                    deleteBtn.setDisabled(!!this.getRecordId());
+                    // console.log('dirty change', dirty);
+                    if (dirty) {
+                        var saveBtn = tbar.getComponent('saveBtn');
+                        var saveCloseBtn = tbar.getComponent('saveCloseBtn');
+                        saveBtn.setDisabled(!dirty);
+                        saveCloseBtn.setDisabled(!dirty);
+                    }
                 },
                 scope: form
             });

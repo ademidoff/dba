@@ -163,9 +163,11 @@ Ext.define('SM.view.main.MainController', {
 
     onTabChange: function(tabPanel, newCard) {
         var store = newCard.getStore && newCard.getStore();
-        if (newCard.shouldRefresh && store) {
+        var id = tabPanel.shouldRefreshId;
+        var cmp = id && Ext.getCmp(id);
+        if (cmp && store) {
             store.reload({ params: store.lastOptions.params });
-            newCard.shouldRefresh = false;
+            tabPanel.shouldRefreshId = null;
         }
     }
 });

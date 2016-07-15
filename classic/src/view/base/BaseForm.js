@@ -7,6 +7,7 @@ Ext.define('SM.view.base.BaseForm', {
 
     mixins: ['SM.core.Localizable'],
     localizable: {
+        delRecordTitle: 'Delete record',
         unsavedCloseConfirm: [
             'There are unsaved changes in this form.',
             ' Are you sure you want to close it?'
@@ -27,7 +28,7 @@ Ext.define('SM.view.base.BaseForm', {
     bodyPadding: 15,
     width: '100%',
     scrollable: true,
-    closeAction: 'destroy',
+    // closeAction: 'destroy',
     // closable: false,
 
     jsonSubmit: true,
@@ -53,6 +54,7 @@ Ext.define('SM.view.base.BaseForm', {
                 },
                 {
                     text: 'Save & close',
+                    itemId: 'saveCloseBtn',
                     formBind: true,
                     disabled: true,
                     iconCls: 'fa fa-floppy-o',
@@ -65,8 +67,8 @@ Ext.define('SM.view.base.BaseForm', {
                         form.onSave(form)
                         .then(function(response) {
                             SM.core.Toast(response.msg || form.localize('recordSaved'));
-                            form.resetDirty();
-                            form.close();
+                            // form.fireEvent('aftersave', form, response);
+                            form.forceClose();
                         })
                         .catch(function(err) {
                             Ext.Msg.alert('Information', err || 'Unknown server error');
@@ -75,6 +77,7 @@ Ext.define('SM.view.base.BaseForm', {
                 },
                 {
                     text: 'Save',
+                    itemId: 'saveBtn',
                     iconCls: 'fa fa-floppy-o',
                     formBind: true,
                     disabled: true,
@@ -88,7 +91,7 @@ Ext.define('SM.view.base.BaseForm', {
                         .then(function(response) {
                             SM.core.Toast(response.msg || form.localize('recordSaved'));
                             form.resetDirty();
-                            form.fireEvent('aftersave', form, response);
+                            form.fireEvent('aftersave');
                         })
                         .catch(function(err) {
                             Ext.Msg.alert('Information', err || 'Unknown server error');
@@ -97,10 +100,12 @@ Ext.define('SM.view.base.BaseForm', {
                 },
                 {
                     text: 'Copy',
+                    itemId: 'copyBtn',
                     iconCls: 'fa fa-plus-circle'
                 },
                 {
-                    text: 'Remove',
+                    text: 'Delete',
+                    itemId: 'deleteBtn',
                     iconCls: 'fa fa-minus-circle',
                     handler: function() {
                         var form = this.up('form');
@@ -109,7 +114,7 @@ Ext.define('SM.view.base.BaseForm', {
                         }
                         form.onDelete(form)
                         .then(function(response) {
-                            form.fireEvent('afterdelete', form, response);
+                            form.fireEvent('afterdelete');
                             SM.core.Toast(response.msg || form.localize('recordDeleted'));
                             form.forceClose();
 
@@ -144,7 +149,7 @@ Ext.define('SM.view.base.BaseForm', {
     },
     /**
      * @method resetDirty Resets the form's dirty state
-     * Use to avoid false positive on loaded values
+     * Use to avoid false positive dirty state after loading form values
      * @returns {void}
      */
     resetDirty: function() {
@@ -161,7 +166,7 @@ Ext.define('SM.view.base.BaseForm', {
         this.close();
     },
     /**
-     * @method onSavr Persists the form's field values to the database
+     * @method onSave Persists the form's field values to the database
      * @param {Object} form The form instance
      * @returns {Promise} The promise will return the server's response
      */
@@ -170,6 +175,10 @@ Ext.define('SM.view.base.BaseForm', {
         var values = $form.getFieldValues(true);
         return new Promise(function(resolve, reject) {
             if (!$form.isValid()) {
+                $form.getFields().each(function(field) {
+                    if (!field.isValid())
+                        console.log('field', field.name || field);
+                });
                 reject('The form is not valid');
             }
             else if (!Object.keys(values).length) {
@@ -207,7 +216,7 @@ Ext.define('SM.view.base.BaseForm', {
     onDelete: function(form) {
         return new Promise(function(resolve, reject) {
             Ext.Msg.show({
-                title:'Delete record',
+                title: form.localize('delRecordTitle'),
                 message: form.localize('beforeDeleteConfirm'),
                 buttons: Ext.Msg.YESNOCANCEL,
                 icon: Ext.Msg.QUESTION,
@@ -237,10 +246,12 @@ Ext.define('SM.view.base.BaseForm', {
      * @returns {void}
      */
     loadFieldStores: function() {
+        this.suspendEvent('dirtychange');
         this.items.each(function(item) {
             if (/^combobox/.test(item.xtype) && item.store) {
                 item.store.load();
             }
         });
+        this.resumeEvent('dirtychange');
     }
 });
