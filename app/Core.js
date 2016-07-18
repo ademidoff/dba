@@ -138,11 +138,15 @@ SM.core.fetchForm = function(formName) {
     });
 };
 
-SM.core.createForm = function(container, entityName, items, recId) {
-    return new Promise(function(resolve, reject) {
-
-        try {
-            var form = Ext.create({
+SM.core.createForm = function(container, entityName, recId) {
+    var form;
+    return SM.core
+        .fetchForm(entityName)
+        .then(function(items) {
+            if (!items.length) {
+                throw new Error('Form ' + entityName + ' not defined');
+            }
+            form = Ext.create({
                 xtype: 'base.form',
                 title: entityName,
                 items: items
@@ -155,35 +159,40 @@ SM.core.createForm = function(container, entityName, items, recId) {
                 container.setActiveTab(form);
                 form.parentTab.tab.hide();
             }
-
-            if (recId) {
-                // load the form with data from backend, not from the grid
-                SM.Request.create({
-                    params: {
-                        action: 'find',
-                        entity: entityName,
-                        query: recId
-                    }
-                })
-                .then(function(data) {
-                    if (data && data.data) {
-                        form.getForm().setValues(data.data);
-                    }
-                    form.setRecordId(recId);
-                    form.resetDirty();
-                })
-                .catch(function(error) {
-                    form.close();
-                    SM.core.Toast(error || 'Form data loading error');
-                });
+            // new record
+            if (!recId) {
+                form.loadFieldStores();
+                return form;
             }
-            form.loadFieldStores();
-            resolve(form);
-
-        } catch(error) {
-            reject(error || 'Form instantiation error');
-        }
-    });
+            // load the field values from the server, not from the grid
+            return SM.Request
+            .create({
+                params: {
+                    action: 'find',
+                    entity: entityName,
+                    query: recId
+                }
+            })
+            .then(function(data) {
+                if (data && data.data) {
+                    form.getForm().setValues(data.data);
+                }
+                form.setRecordId(recId);
+                form.loadFieldStores();
+                return form;
+            })
+            .catch(function(error) {
+                throw new Error(error.msg || error.message || 'Error loading form data');
+            });
+        })
+        .catch(function(error) {
+            var msg = error instanceof Error ? error.message :
+                    error ? error : 'Form ' + entityName + ' not found';
+            SM.core.Toast(msg);
+            if (form) {
+                form.close();
+            }
+        });
 };
 
 SM.core.getView = function (entityName) {
@@ -319,20 +328,8 @@ SM.core.renderGrid = function(entity) {
                 iconCls: 'fa fa-plus-circle',
                 handler: function() {
                     SM.core
-                    .fetchForm(entityName)
-                    .then(function(items) {
-                        if (!items.length) {
-                            throw new Error('Form ' + entityName + ' not defined');
-                        }
-                        SM.core
-                        .createForm(contentPanel, entityName, items, null)
-                        .then(attachFormListeners(contentPanel));
-                    })
-                    .catch(function(error) {
-                        var msg = error instanceof Error ? error.message :
-                                error ? error : 'Form ' + entityName + ' not found';
-                        SM.core.Toast(msg);
-                    });
+                    .createForm(contentPanel, entityName, null)
+                    .then(attachFormListeners(contentPanel));
                 }
             },
             '->',
@@ -363,19 +360,10 @@ SM.core.renderGrid = function(entity) {
             itemdblclick: function(view, rec) {
                 // open a form to edit the record
                 SM.core
-                .fetchForm(entityName)
-                .then(function(items) {
-                    if (!items.length) {
-                        throw new Error('Form ' + entityName + ' not defined');
-                    }
-                    SM.core
-                    .createForm(contentPanel, entityName, items, rec.get('Id'))
-                    .then(attachFormListeners(contentPanel));
-                })
-                .catch(function(error) {
-                    var msg = error instanceof Error ? error.message :
-                            error ? error : 'Form ' + entityName + ' not found';
-                    SM.core.Toast(msg);
+                .createForm(contentPanel, entityName, rec.get('Id'))
+                .then(attachFormListeners(contentPanel))
+                .then(function(form) {
+                    form.fireEvent('dirtychange');
                 });
             }
         }
@@ -394,38 +382,64 @@ SM.core.renderGrid = function(entity) {
 
     function attachFormListeners(contentPanel) {
         return function(form) {
-            function shouldRefresh() {
-                contentPanel.shouldRefreshId = Ext.clone(this.parentTab.id);
+            function shouldRefreshStore(cb) {
+                // console.log('should refresh called from', this.parentTab.id);
+                var grid = this.parentTab;
+                var store = grid && grid.getStore && grid.getStore();
+                store && store.reload({
+                    scope: this,
+                    callback: function(recs, operation, success) {
+                        if (success) {
+                            if (typeof form[cb] === 'function') {
+                                form[cb]();
+                            }
+                        }
+                    }
+                });
             }
             form.on({
                 close: function() {
-                    if (this.parentTab) {
-                        this.parentTab.tab.show();
-                        contentPanel.setActiveTab(this.parentTab);
+                    this.parentTab.tab.show();
+                    contentPanel.setActiveTab(this.parentTab);
+                    this.parentTab = null;
+                },
+                beforeclose: function(_form) {
+                    if (form.isDirty()) {
+                        Ext.Msg.show({
+                            title:'Close',
+                            message: form.localize('unsavedCloseConfirm'),
+                            buttons: Ext.Msg.YESNO,
+                            icon: Ext.Msg.QUESTION,
+                            fn: function(btn) {
+                                if (btn === 'yes') {
+                                    form.doClose();
+                                }
+                            }
+                        });
+                        return false;
                     }
                 },
-                // beforesave: function() {
-                //
-                // },
-                aftersave: shouldRefresh,
-                // beforedelete: function() {
-                //
-                // },
-                afterdelete: shouldRefresh,
+                // beforesave: function() {},
+                aftersave: shouldRefreshStore,
+                // beforedelete: function() {},
+                afterdelete: shouldRefreshStore,
                 dirtychange: function(form, dirty) {
-                    var tbar = this.down('toolbar');
-                    var deleteBtn = tbar.getComponent('deleteBtn');
-                    deleteBtn.setDisabled(!!this.getRecordId());
                     // console.log('dirty change', dirty);
-                    if (dirty) {
-                        var saveBtn = tbar.getComponent('saveBtn');
-                        var saveCloseBtn = tbar.getComponent('saveCloseBtn');
-                        saveBtn.setDisabled(!dirty);
-                        saveCloseBtn.setDisabled(!dirty);
-                    }
+                    var tbar = this.down('toolbar');
+                    var hasRecordId = !!this.getRecordId();
+                    var isValid = this.getForm().isValid();
+                    var deleteBtn = tbar.getComponent('deleteBtn');
+                    var saveBtn = tbar.getComponent('saveBtn');
+                    var saveCloseBtn = tbar.getComponent('saveCloseBtn');
+                    var copyBtn = tbar.getComponent('copyBtn');
+                    deleteBtn.setDisabled(!hasRecordId);
+                    saveBtn.setDisabled(!dirty || !isValid);
+                    saveCloseBtn.setDisabled(!dirty || !isValid);
+                    copyBtn.setDisabled(!hasRecordId);
                 },
                 scope: form
             });
+            return form;
         };
     }
 };

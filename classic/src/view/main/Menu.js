@@ -165,7 +165,7 @@ Ext.define('SM.view.main.Menu', {
                     id: 'sm-content-panel',
                     minTabWidth: 100,
                     listeners: {
-                        tabchange: 'onTabChange'
+                        // tabchange: 'onTabChange'
                     }
                 }
             ]

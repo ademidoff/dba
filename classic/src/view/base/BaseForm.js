@@ -16,7 +16,9 @@ Ext.define('SM.view.base.BaseForm', {
         cantSaveRecord: 'Record cannot be saved',
         recordDeleted: 'Record successfully deleted',
         cantDeleteRecord: 'This record cannot be deleted',
-        beforeDeleteConfirm: 'Are you sure you want to delete this record?'
+        beforeDeleteConfirm: 'Are you sure you want to delete this record?',
+        invalidForm: 'The form is not valid',
+        formNotChanged: 'No changes to save'
     },
     // auto getters & setters
     config: {
@@ -28,6 +30,7 @@ Ext.define('SM.view.base.BaseForm', {
     bodyPadding: 15,
     width: '100%',
     scrollable: true,
+    trackResetOnLoad: true,
     // closeAction: 'destroy',
     // closable: false,
 
@@ -55,7 +58,6 @@ Ext.define('SM.view.base.BaseForm', {
                 {
                     text: 'Save & close',
                     itemId: 'saveCloseBtn',
-                    formBind: true,
                     disabled: true,
                     iconCls: 'fa fa-floppy-o',
                     handler: function() {
@@ -67,8 +69,8 @@ Ext.define('SM.view.base.BaseForm', {
                         form.onSave(form)
                         .then(function(response) {
                             SM.core.Toast(response.msg || form.localize('recordSaved'));
-                            // form.fireEvent('aftersave', form, response);
-                            form.forceClose();
+                            form.resetDirty();
+                            form.fireEvent('aftersave', 'close');
                         })
                         .catch(function(err) {
                             Ext.Msg.alert('Information', err || 'Unknown server error');
@@ -79,7 +81,6 @@ Ext.define('SM.view.base.BaseForm', {
                     text: 'Save',
                     itemId: 'saveBtn',
                     iconCls: 'fa fa-floppy-o',
-                    formBind: true,
                     disabled: true,
                     handler: function() {
                         var form = this.up('form');
@@ -101,12 +102,20 @@ Ext.define('SM.view.base.BaseForm', {
                 {
                     text: 'Copy',
                     itemId: 'copyBtn',
-                    iconCls: 'fa fa-plus-circle'
+                    iconCls: 'fa fa-plus-circle',
+                    disabled: true,
+                    handler: function() {
+                        var form = this.up('form');
+                        form.setRecordId(null);
+                        form.getForm().findField('Id').setValue(null);
+                        form.fireEvent('dirtychange');
+                    }
                 },
                 {
                     text: 'Delete',
                     itemId: 'deleteBtn',
                     iconCls: 'fa fa-minus-circle',
+                    disabled: true,
                     handler: function() {
                         var form = this.up('form');
                         if (form.fireEvent('beforedelete', form) === false) {
@@ -124,28 +133,22 @@ Ext.define('SM.view.base.BaseForm', {
                                 SM.core.Toast(message);
                         });
                     }
+                },
+                {
+                    xtype: 'tbtext',
+                    text: 'New',
+                    itemId: 'newLabel',
+                    hidden: true,
+                    style: {
+                        color: 'maroon'
+                    }
                 }
             ]
         }
     ],
 
     listeners: {
-        beforeclose: function(form) {
-            if (form.isDirty()) {
-                Ext.Msg.show({
-                    title:'Close',
-                    message: form.localize('unsavedCloseConfirm'),
-                    buttons: Ext.Msg.YESNO,
-                    icon: Ext.Msg.QUESTION,
-                    fn: function(btn) {
-                        if (btn === 'yes') {
-                            form.forceClose();
-                        }
-                    }
-                });
-                return false;
-            }
-        }
+        // beforeclose:
     },
     /**
      * @method resetDirty Resets the form's dirty state
@@ -154,8 +157,10 @@ Ext.define('SM.view.base.BaseForm', {
      */
     resetDirty: function() {
         this.getForm().getFields().each(function(fld) {
-            fld.originalValue = fld.getValue();
+            // fld.originalValue = fld.getValue();
+            fld.resetOriginalValue();
         });
+        this.getForm().checkDirty();
     },
     /**
      * @method forceClose Allows to close the form by ignoring its dirty status
@@ -172,17 +177,18 @@ Ext.define('SM.view.base.BaseForm', {
      */
     onSave: function(form) {
         var $form = form.getForm();
-        var values = $form.getFieldValues(true);
+        var isNew = !this.getRecordId();
+        var values = $form.getFieldValues(!isNew);
         return new Promise(function(resolve, reject) {
             if (!$form.isValid()) {
                 $form.getFields().each(function(field) {
                     if (!field.isValid())
                         console.log('field', field.name || field);
                 });
-                reject('The form is not valid');
+                reject(form.localize('invalidForm'));
             }
             else if (!Object.keys(values).length) {
-                reject('No changes to save');
+                reject(form.localize('formNotChanged'));
             }
             else {
                 var recordId = form.getRecordId();
