@@ -17,46 +17,46 @@ Ext.define('SM.view.form.DoubleComboBox', {
     typeAheadDelay: 300,
     displayField: 'Value',
     valueField: 'Id',
-    // unless false, this will break the proxy's `query` param 
+    // unless false, this will break the proxy's `query` param
     queryParam: false,
     forceSelection: true,
 
     initComponent: function() {
-	    var me = this;
-	    var model = Ext.create('SM.model.Base', {
-	        fields: [
-	            { name: 'Id',        type: 'int' },
-	            { name: 'Value',     type: 'string' }
-	        ]
-	    });
-	    var proxy = Ext.create('SM.store.BaseProxy', {
-	        reader: {
-	            type: 'json',
-	            rootProperty: 'data'
-	        },
-	        extraParams: {
-		        action: 'link',
-		        query: {
-		        	Id: me.formElementId
-		        }
-    		}
-	    });
-	    var store = SM.core.createStore({
-	        model: model,
-	        proxy: proxy
+        var me = this;
+        var model = Ext.create('SM.model.Base', {
+            fields: [
+                { name: 'Id',        type: 'string' },
+                { name: 'Value',     type: 'string' }
+            ]
         });
-	    
-	    Ext.apply(this, {
-	    	store: store
-	    });
-    	this.callParent();
+        var proxy = Ext.create('SM.store.BaseProxy', {
+            reader: {
+                type: 'json',
+                rootProperty: 'data'
+            },
+            extraParams: {
+                action: 'link',
+                query: {
+                    Id: me.formElementId
+                }
+            }
+        });
+        var store = SM.core.createStore({
+            model: model,
+            proxy: proxy
+        });
+
+        Ext.apply(this, {
+            store: store
+        });
+        this.callParent();
     },
 
     listeners: {
-    	scope: this,
-    	beforequery: function(queryPlan) {
-    		var store = queryPlan.combo.getStore();
-    		// queryPlan.cancel = !!store.getCount();
-    	}
+        scope: this,
+        beforequery: function(_queryPlan) {
+            // var store = queryPlan.combo.getStore();
+            // queryPlan.cancel = !!store.getCount();
+        }
     }
 });

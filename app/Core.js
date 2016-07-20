@@ -192,14 +192,15 @@ SM.core.createForm = function(container, entityName, recId) {
             if (form) {
                 form.close();
             }
+            return Promise.reject(msg);
         });
 };
 
 SM.core.getView = function (entityName) {
     var attributeModel = Ext.create('SM.model.Base', {
         fields: [
-            { name: 'Id',           type: 'int' },
-            { name: 'EntityId',     type: 'int' },
+            { name: 'Id',           type: 'string' },
+            { name: 'EntityId',     type: 'string' },
             { name: 'Name',         type: 'string' },
             { name: 'Label',        type: 'string' },
             { name: 'Order',        type: 'int' },
@@ -240,7 +241,7 @@ SM.core.getView = function (entityName) {
         return this.data.reduce(function(res, val) {
             var col = { text: val.Label, dataIndex: val.Name };
             col = Object.assign(col, defaults, TYPES[val.DataType] || TYPES.STRING);
-            if (val.Name === 'Id') {
+            if (val.Name === 'AlternateId') {
                 col.width = 40;
             }
             return res.concat(col);
@@ -329,7 +330,8 @@ SM.core.renderGrid = function(entity) {
                 handler: function() {
                     SM.core
                     .createForm(contentPanel, entityName, null)
-                    .then(attachFormListeners(contentPanel));
+                    .then(attachFormListeners(contentPanel))
+                    .catch(function() {});
                 }
             },
             '->',
@@ -364,7 +366,8 @@ SM.core.renderGrid = function(entity) {
                 .then(attachFormListeners(contentPanel))
                 .then(function(form) {
                     form.fireEvent('dirtychange');
-                });
+                })
+                .catch(function() {});
             }
         }
     });
