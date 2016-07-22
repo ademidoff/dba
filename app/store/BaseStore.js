@@ -6,5 +6,8 @@ Ext.define('SM.store.BaseStore', {
 
     pageSize: 100,
     autoLoad: false,
-    remoteSort: true
+    remoteSort: true,
+    remoteFilter: true,
+    // overridden
+    multiSortLimit: 10
 });

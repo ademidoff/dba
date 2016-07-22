@@ -64,9 +64,7 @@ Ext.define('SM.overrides.util.SorterCollection', {
             // real instances.
             me.splice(index, mode.replace ? count : 0, sorters);
 
-            console.log('mode.multi: ', mode.multi);
-            console.log('me.count: ', me.length);
-            console.log('limit: ', options.getMultiSortLimit());
+            console.log('splice: ', index, mode.replace ? count : 0, sorters);
 
             if (mode.multi) {
                 count = me.length;
@@ -81,10 +79,12 @@ Ext.define('SM.overrides.util.SorterCollection', {
             console.log('direction: ', direction);
             if (sorter && direction) {
                 sorter.setDirection(direction);
+                console.info('no toggle');
             } else if (index === 0 && primary && primary === me.getAt(0)) {
                 // If we just adjusted the sorters at the front and the primary sorter is
                 // still the primary sorter, toggle its direction:
                 primary.toggle();
+                console.info('do toggle');
             }
 
             me.endUpdate();

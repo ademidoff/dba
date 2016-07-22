@@ -3,8 +3,9 @@ Ext.define('SM.view.grid.TextFilter', {
     alias: 'widget.gridfilterfield',
 
     emptyText: 'Filter',
-    width: '100%',
-    cls: 'grid-col-filter',
+    width: '92%',
+    padding: '0 5px',
+    cls: 'x-grid-col-filter',
     enableKeyEvents: true,
     listeners: {
         keyup: {
@@ -16,7 +17,7 @@ Ext.define('SM.view.grid.TextFilter', {
                     value   : field.getValue()
                 }));
             },
-            buffer: 250
+            buffer: 500
         }
     }
 });

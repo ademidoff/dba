@@ -12,7 +12,7 @@ Ext.define('SM.store.BaseProxy', {
         type: 'json'
     },
     paramsAsJson: true,
-    sortParam: 'sortBy',
+    sortParam: 'orderBy',
     filterParam: 'filterBy'
 
     /*
@@ -22,11 +22,11 @@ Ext.define('SM.store.BaseProxy', {
             request = me.buildRequest(operation),
             method  = me.getMethod(request),
             jsonData, params;
-            
+
         if (writer && operation.allowWrite()) {
             request = writer.write(request);
         }
-        
+
         request.setConfig({
             binary              : me.getBinary(),
             headers             : me.getHeaders(),
@@ -35,15 +35,15 @@ Ext.define('SM.store.BaseProxy', {
             callback            : me.createRequestCallback(request, operation),
             method              : method,
             useDefaultXhrHeader : me.getUseDefaultXhrHeader(),
-            disableCaching      : false // explicitly set it to false, ServerProxy handles caching 
+            disableCaching      : false // explicitly set it to false, ServerProxy handles caching
         });
-        
+
         if (method.toUpperCase() !== 'GET' && me.getParamsAsJson()) {
             params = request.getParams();
             // console.log('init params: ', operation.getParams());
             // console.log('extra params: ', me.getExtraParams());
             console.log('params: ', params);
- 
+
             if (params) {
                 jsonData = request.getJsonData();
                 if (jsonData) {
@@ -55,7 +55,7 @@ Ext.define('SM.store.BaseProxy', {
                 request.setParams(undefined);
             }
         }
-        
+
         if (me.getWithCredentials()) {
             request.setWithCredentials(true);
             request.setUsername(me.getUsername());

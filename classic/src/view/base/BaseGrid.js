@@ -5,7 +5,10 @@ Ext.define('SM.view.base.BaseGrid', {
     listeners: {
         headerclick: function(ct, col, _e) {
             // console.log('col object: ', col);
-            // console.log('sort state: ', col.sortState);
+            if (col.isSortable) {
+                console.log('sort state: ', col.sortState);
+
+            }
         }
     }
 });

@@ -256,7 +256,7 @@ SM.core.getView = function (entityName) {
     function makeModelFields() {
         var FLD_TYPES = {
             INTEGER: 'int',
-            DECIMAL: 'int', // why not float?
+            DECIMAL: 'float',
             BOOLEAN: 'boolean',
             STRING: 'string',
             DATE: 'date'
