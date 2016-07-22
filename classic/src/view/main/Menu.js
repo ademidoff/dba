@@ -16,6 +16,7 @@ Ext.define('SM.view.main.Menu', {
         'SM.view.form.BaseComboBox',
         'SM.view.form.FlatComboBox',
         'SM.view.form.DoubleComboBox',
+        'SM.view.grid.TextFilter',
         'SM.view.base.BaseGrid',
         'SM.view.base.BaseForm',
         'SM.core.Localizable',

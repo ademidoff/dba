@@ -230,7 +230,7 @@ SM.core.getView = function (entityName) {
 
     function makeGridColumns() {
         var defaults = { menuDisabled: true };
-        var TYPES = {
+        var COL_TYPES = {
             INTEGER: { xtype: 'numbercolumn', format: '0,000', width: 100, align: 'right' },
             DECIMAL: { xtype: 'numbercolumn', format: '0,000.00', width: 110, align: 'right' },
             BOOLEAN: { xtype: 'checkcolumn.ro', width: 50, editor: null },
@@ -240,25 +240,30 @@ SM.core.getView = function (entityName) {
 
         return this.data.reduce(function(res, val) {
             var col = { text: val.Label, dataIndex: val.Name };
-            col = Object.assign(col, defaults, TYPES[val.DataType] || TYPES.STRING);
+            col = Object.assign(col, defaults, COL_TYPES[val.DataType] || COL_TYPES.STRING);
             if (val.Name === 'AlternateId') {
                 col.width = 40;
+            }
+            if (~['STRING', 'INTEGER'].indexOf(val.DataType)) {
+                col.items = [{
+                    xtype: 'gridfilterfield'
+                }];
             }
             return res.concat(col);
         }, []);
     }
 
     function makeModelFields() {
-        var TYPES = {
+        var FLD_TYPES = {
             INTEGER: 'int',
-            DECIMAL: 'int',
+            DECIMAL: 'int', // why not float?
             BOOLEAN: 'boolean',
             STRING: 'string',
             DATE: 'date'
         };
 
         return this.data.reduce(function(res, val) {
-            var col = { name: val.Name, type: TYPES[val.DataType] || TYPES.STRING };
+            var col = { name: val.Name, type: FLD_TYPES[val.DataType] || FLD_TYPES.STRING };
             return res.concat(col);
         }, []);
     }
@@ -303,8 +308,8 @@ SM.core.renderGrid = function(entity) {
     });
     var dataStore = Ext.create('SM.store.BaseStore', {
         model: model,
-        proxy: proxy,
-        sorters: {property: 'Id', direction: 'ASC'}
+        proxy: proxy
+        // sorters: {property: 'Id', direction: 'ASC'}
     });
 
     var toolbar = Ext.create('Ext.toolbar.Toolbar', {
@@ -331,7 +336,7 @@ SM.core.renderGrid = function(entity) {
                     SM.core
                     .createForm(contentPanel, entityName, null)
                     .then(attachFormListeners(contentPanel))
-                    .catch(function() {});
+                    .catch(Ext.emptyFn);
                 }
             },
             '->',
@@ -367,7 +372,7 @@ SM.core.renderGrid = function(entity) {
                 .then(function(form) {
                     form.fireEvent('dirtychange');
                 })
-                .catch(function() {});
+                .catch(Ext.emptyFn);
             }
         }
     });

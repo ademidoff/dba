@@ -5,6 +5,6 @@ Ext.define('SM.store.BaseStore', {
     extend: 'Ext.data.Store',
 
     pageSize: 100,
-
-    autoLoad: false
+    autoLoad: false,
+    remoteSort: true
 });

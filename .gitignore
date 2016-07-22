@@ -1,0 +1,9 @@
+.git
+.sencha
+*.json
+*.xml
+*.css
+bootstrap.js
+node_modules
+ext
+build
