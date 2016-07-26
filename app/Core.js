@@ -138,7 +138,7 @@ SM.core.fetchForm = function(formName) {
     });
 };
 
-SM.core.createForm = function(container, entityName, recId) {
+SM.core.createForm = function(container, entityName, recordId) {
     var form;
     return SM.core
         .fetchForm(entityName)
@@ -160,24 +160,25 @@ SM.core.createForm = function(container, entityName, recId) {
                 form.parentTab.tab.hide();
             }
             // new record
-            if (!recId) {
+            if (!recordId) {
                 form.loadFieldStores();
                 return form;
             }
             // load the field values from the server, not from the grid
-            return SM.Request
-            .create({
+            return SM.Request.create({
                 params: {
                     action: 'find',
                     entity: entityName,
-                    query: recId
+                    query: {
+                        Id: recordId
+                    }
                 }
             })
             .then(function(data) {
                 if (data && data.data) {
                     form.getForm().setValues(data.data);
                 }
-                form.setRecordId(recId);
+                form.setRecordId(recordId);
                 form.loadFieldStores();
                 return form;
             })

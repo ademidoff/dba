@@ -1,8 +1,8 @@
 # DB Administrator
 
-This app is supposed to help the DBA people to help administer MSSQL, Postgres and MySQL databases.
-The server part is based on Node.js, Express.js and Sequelize.js (the latter being a node.js module
-that does a great job of abstracting away differences in SQL engines).
+This app is supposed to help the DBA people to help administer MSSQL, Postgres, MySQL and MariaDB
+databases. The server part is based on Node.js, Express.js and Sequelize.js (the latter being
+a NodeJS module that does a great job of abstracting away differences in SQL engines).
 
 The following files are all needed to build and load the application.
 

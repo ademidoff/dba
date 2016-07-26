@@ -128,7 +128,9 @@ Ext.define('SM.core.AceEditorPanel', {
             params: {
                 action: 'find',
                 entity: 'EntityEventHook',
-                query: recordId
+                query: {
+                    Id: recordId
+                }
             }
         });
     },
