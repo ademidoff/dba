@@ -1,5 +1,4 @@
 Ext.ns('SM.core');
-Ext.define('SM.core', {});
 
 Ext.define('SM.Request', {
 

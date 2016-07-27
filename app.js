@@ -9,7 +9,7 @@ Ext.application({
     extend: 'SM.Application',
 
     requires: [
-        'SM.core'
+        // 'SM.core'
     ]
 
     // The name of the initial view to create. With the classic toolkit this class
